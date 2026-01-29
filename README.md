@@ -34,33 +34,71 @@ You are working with an AI (Claude, ChatGPT, Local LLM). You need to share code.
 
 ## 📦 Installation
 
-### 1. Install Dependencies
+**CTX** requires the **Fish Shell** and the **Fisher** plugin manager.
 
-CTX orchestrates standard system tools. You likely already have them, but if not:
+### 1. Prerequisite: Fish & Fisher
 
-**macOS (Homebrew):**
+If you don't have them yet:
 
-```bash
-brew install fish fzf tree fd
-```
+1. **Install Fish Shell:**
+    * **Fedora:** `sudo dnf install fish`
+    * **Ubuntu:** `sudo apt install fish`
+    * **Mac:** `brew install fish`
 
-**Ubuntu / Debian:**
+2. **Enter Fish:**
 
-```bash
-sudo apt install fish fzf tree fd-find
-```
+    ```bash
+    fish
+    ```
 
-**Arch Linux:**
+3. **Install Fisher** (The Plugin Manager):
 
-```bash
-sudo pacman -S fish fzf tree fd
-```
+    ```fish
+    curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
+    ```
 
-### 2. Install CTX (via Fisher)
+---
+
+### 2. Install System Tools
+
+CTX orchestrates these standard binaries. You likely have `fzf` and `tree`, but `fd` is critical for Git-aware scanning.
+
+* **Fedora / RHEL:**
+
+    ```bash
+    sudo dnf install fzf tree fd-find
+    ```
+
+* **Ubuntu / Debian:**
+
+    ```bash
+    sudo apt install fzf tree fd-find
+    ```
+
+* **Arch Linux:**
+
+    ```bash
+    sudo pacman -S fzf tree fd
+    ```
+
+* **macOS:**
+
+    ```bash
+    brew install fzf tree fd
+    ```
+
+---
+
+### 3. Install Context Catapult
+
+Now that your environment is ready, install the artifact:
 
 ```fish
 fisher install hexanomicon/context-catapult
 ```
+
+**Verification:**
+Run `ctx -h`. If you see the manual, you are ready.
 
 | Tool | Purpose | Status |
 | :--- | :--- | :--- |
