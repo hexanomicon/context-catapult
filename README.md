@@ -1,9 +1,12 @@
 <div align="center">
-  <img src="context-catapult.jpeg" alt="CTX" width=50%>
+  <img src="context-catapult.jpeg" alt="CTX" width="400">
   <p><strong>CTX</strong> - The Context Catapult</p>
   <p>
     <a href="https://github.com/hexanomicon/context-catapult">
       <img src="https://img.shields.io/badge/Fisher-Install-1a1a20?style=for-the-badge&labelColor=006064&logo=fish&logoColor=white" alt="Fisher">
+    </a>
+    <a href="https://github.com/hexanomicon">
+      <img src="https://img.shields.io/badge/Origin-The_Hexanomicon-1a1a20?style=for-the-badge&labelColor=4a148c" alt="Hexanomicon">
     </a>
     <a href="LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-1a1a20?style=for-the-badge&labelColor=2e7d32" alt="License">
@@ -23,7 +26,7 @@ You are working with an AI (Claude, ChatGPT, Local LLM). You need to share code.
 
 ## 🔮 The Solution
 
-**CTX** bridges your terminal and your AI.
+**CTX** bridges your terminal and your AI using tools you already trust.
 
 * **🛡️ Safety First:** Auto-skips files larger than **1MB** or **2000 lines**.
 * **🧠 Context Aware:** Uses `fd` to respect `.gitignore` automatically.
@@ -34,64 +37,26 @@ You are working with an AI (Claude, ChatGPT, Local LLM). You need to share code.
 
 ## 📦 Installation
 
-**CTX** requires the **Fish Shell** and the **Fisher** plugin manager.
+To use this tool, you need 3 layers: The **Binaries**, The **Plugin Manager**, and **The Script**.
 
-### 1. Prerequisite: Fish & Fisher
+### 1. Install System Binaries
 
-If you don't have them yet:
+CTX orchestrates these engines. You likely have them, but `fd` is critical for Git awareness.
 
-1. **Install Fish Shell:**
-    * **Fedora:** `sudo dnf install fish`
-    * **Ubuntu:** `sudo apt install fish`
-    * **Mac:** `brew install fish`
+* **Fedora / RHEL:** `sudo dnf install fzf tree fd-find`
+* **Ubuntu / Debian:** `sudo apt install fzf tree fd-find`
+* **Arch Linux:** `sudo pacman -S fzf tree fd`
+* **macOS:** `brew install fzf tree fd`
 
-2. **Enter Fish:**
+### 2. Install Fisher (Plugin Manager)
 
-    ```bash
-    fish
-    ```
+If you don't have [Fisher](https://github.com/jorgebucaran/fisher) installed yet, run this:
 
-3. **Install Fisher** (The Plugin Manager):
-
-    ```fish
-    curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
-    ```
-
----
-
-### 2. Install System Tools
-
-CTX orchestrates these standard binaries. You likely have `fzf` and `tree`, but `fd` is critical for Git-aware scanning.
-
-* **Fedora / RHEL:**
-
-    ```bash
-    sudo dnf install fzf tree fd-find
-    ```
-
-* **Ubuntu / Debian:**
-
-    ```bash
-    sudo apt install fzf tree fd-find
-    ```
-
-* **Arch Linux:**
-
-    ```bash
-    sudo pacman -S fzf tree fd
-    ```
-
-* **macOS:**
-
-    ```bash
-    brew install fzf tree fd
-    ```
-
----
+```fish
+curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
+```
 
 ### 3. Install Context Catapult
-
-Now that your environment is ready, install the artifact:
 
 ```fish
 fisher install hexanomicon/context-catapult
@@ -99,13 +64,6 @@ fisher install hexanomicon/context-catapult
 
 **Verification:**
 Run `ctx -h`. If you see the manual, you are ready.
-
-| Tool | Purpose | Status |
-| :--- | :--- | :--- |
-| **[fish](https://fishshell.com/)** | The Shell environment. | **Required** |
-| **[fzf](https://github.com/junegunn/fzf)** | Interactive fuzzy-finding selector. | **Required** |
-| **[tree](https://linux.die.net/man/1/tree)** | Directory mapping/visualization. | **Required** |
-| **[fd](https://github.com/sharkdp/fd)** | Fast file finding & `.gitignore` support. | *Recommended* |
 
 ---
 
@@ -135,7 +93,7 @@ ctx README.md src/main.py
 ctx -a src/components/
 ```
 
-**Output:**
+**Output Example:**
 
 ```text
 mode: 🚀 Powered by 'fd' (GitIgnore Active)
@@ -169,9 +127,33 @@ ctx -s 50 src/     # Copy top 50 lines of all files in src/
 
 ---
 
-## ⚙️ Configuration
+## 💡 Pro Tips
 
-CTX comes with sensible defaults to prevent **Context Poisoning**. You can override them via flags.
+### ⚡ Speed Navigation with Zoxide
+
+CTX pairs perfectly with **[zoxide (z)](https://github.com/ajeetdsouza/zoxide)**. Use `z` to jump instantly to a repo, then `ctx` to extract what you need.
+
+```fish
+# Jump to project -> Extract Context
+z lychd; and ctx .
+
+# Jump to project -> Generate Handshake
+z my-app; and ctx -l
+```
+
+### 🔧 Philosophy
+
+CTX is not a black box. It is a pure Fish script wrapper (~300 lines) that orchestrates tools you already use. Because it relies on standard binaries (`fd`, `fzf`), it is fast, hackable, and transparent.
+
+---
+
+## ⚙️ Configuration & Customization
+
+CTX comes with sensible defaults to prevent context poisoning, but it is built to be hacked.
+
+### 1. Runtime Flags
+
+You can override limits per-command:
 
 | Feature | Default | Override Flag | Description |
 | :--- | :--- | :--- | :--- |
@@ -180,4 +162,12 @@ CTX comes with sensible defaults to prevent **Context Poisoning**. You can overr
 | **Recursion** | 3 Levels | `-d <N>` | How deep to scan (`-1` = Infinite). |
 | **Console** | 20 Lines | `-P <N>` | Max lines to print in terminal summary. |
 
-> Run `ctx -h` to see the full help manual.
+### 2. modifying Defaults (The Source)
+
+Want to add new file extensions (e.g., `.swift`, `.ex`) or change the "Trash List" of ignored folders?
+
+**Edit the script directly:**
+
+```fish
+nano ~/.config/fish/functions/ctx.fish
+```
