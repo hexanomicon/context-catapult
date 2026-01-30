@@ -1,6 +1,6 @@
 # ------------------------------------------------------------------------------
 # TOOL:    CTX (Context Catapult)
-# REPO:    https://github.com/hexanomicon/ctx
+# REPO:    https://github.com/hexanomicon/context-catapult
 # LICENSE: MIT
 # ------------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@ function ctx --description "Context Catapult: The Ultimate LLM Workflow Tool"
     set -l allowed_exts txt md py js ts go rs c cpp h hpp sh fish json yaml toml sql java rb css html jinja dockerfile vue svelte jsx tsx
     set -l special_files README.md Dockerfile Containerfile Makefile Justfile Cargo.toml package.json go.mod requirements.txt
     
-    # 🗑️ TRASH LIST (Files to ignore in Tree/Find)
+    # 🗑️ TRASH LIST
     set -l trash_patterns '.git' '.svn' '.hg' '.DS_Store' \
                           'node_modules' 'bower_components' \
                           'venv' '.venv' 'env' '.env' \
@@ -28,17 +28,16 @@ function ctx --description "Context Catapult: The Ultimate LLM Workflow Tool"
     set -l state_file /tmp/ctx_last_batch.txt
 
     # ==============================================================================
-    # 🎨 THE PALETTE (Clean & Professional)
+    # 🎨 THE PALETTE
     # ==============================================================================
-    set -l c_title  (set_color -o af5fff)  # Purple (Titles)
-    set -l c_info   (set_color -o 00e5ff)  # Blue (Info)
-    set -l c_succ   (set_color -o 00ff9d)  # Green (Success)
-    set -l c_warn   (set_color -o ffaf00)  # Gold (Warning)
-    set -l c_err    (set_color -o ff0000)  # Red (Error)
-    set -l c_dim    (set_color 585858)     # Grey (Metadata)
+    set -l c_title  (set_color -o af5fff)  # Purple
+    set -l c_info   (set_color -o 00e5ff)  # Blue
+    set -l c_succ   (set_color -o 00ff9d)  # Green
+    set -l c_warn   (set_color -o ffaf00)  # Gold
+    set -l c_err    (set_color -o ff0000)  # Red
+    set -l c_dim    (set_color 585858)     # Grey
     set -l c_reset  (set_color normal)
 
-    # Helper: Tree Ignore String
     set -l tree_ignore (string join '|' $trash_patterns)
 
     # ==============================================================================
@@ -103,7 +102,7 @@ YOUR DIRECTIVE:
     end
 
     # ==============================================================================
-    # 🤖 MODE 2: THE HANDSHAKE (LLM)
+    # 🤖 MODE 2: THE HANDSHAKE
     # ==============================================================================
     if set -q _flag_llm
         if not type -q tree; echo "$c_err❌ 'tree' missing.$c_reset"; return 1; end
@@ -154,7 +153,7 @@ YOUR DIRECTIVE:
     end
 
     # ==============================================================================
-    # 🔎 MODE 4: DISCOVERY
+    # 🔎 MODE 4: DISCOVERY (Fixed Regex & Argument Order)
     # ==============================================================================
     set -l files
     if set -q _flag_retry
@@ -164,46 +163,72 @@ YOUR DIRECTIVE:
         set -l targets
         if test (count $argv) -eq 0; set targets "."; else; set targets $argv; end
 
-        # --- SMART SELECTION ---
-        set -l fzf_select_cmd ""
-        set -l scanning_dir 0
-        if test (count $argv) -eq 0; set scanning_dir 1; else
-            for arg in $argv; if test -d "$arg"; set scanning_dir 1; break; end; end
-        end
-        if test $scanning_dir -eq 0; set fzf_select_cmd ",load:select-all"; end
+        # 1. Split Files vs Directories
+        set -l explicit_files
+        set -l dirs_to_scan
+        set -l fzf_select_cmd "" 
 
-        # --- ENGINE: FD vs FIND ---
+        for item in $targets
+            if test -f "$item"
+                set explicit_files $explicit_files "$item"
+            else if test -d "$item"
+                set dirs_to_scan $dirs_to_scan "$item"
+            end
+        end
+
+        # 2. Configure Selection Behavior
+        if test (count $explicit_files) -gt 0; set fzf_select_cmd ",load:select-all"; end
+        if test (count $explicit_files) -eq 0; and test (count $dirs_to_scan) -gt 0; set fzf_select_cmd ""; end
+
         set -l depth $def_depth
         if set -q _flag_depth; set depth $_flag_depth; end
         if set -q _flag_no_recursive; set depth 0; end
 
         set -l raw (mktemp)
-        if type -q fd || type -q fdfind
-             set -l fd_bin fd; if type -q fdfind; set fd_bin fdfind; end
-             set -l final_regex ".*\.(" (string join '|' $allowed_exts) ")\$|(" (string join '|' $special_files) ")\$"
-             set -l depth_arg "--max-depth" "$depth"
-             if test "$depth" -eq -1; set depth_arg ""; end
-             if test "$depth" -eq 0; set depth_arg "--max-depth" "1"; end
-             command $fd_bin . $targets --type f $depth_arg --regex "$final_regex" >> $raw
-        else
-            echo "$c_dim""mode: 🐢 Legacy 'find' (Install 'fd' for .gitignore support)$c_reset"
-            set -l find_depth
-            if test "$depth" -ne -1; set find_depth "-maxdepth" "$depth"; end
-            if test "$depth" -eq 0; set find_depth "-maxdepth" "1"; end
-            set -l find_exclude
-            for junk in $trash_patterns; set find_exclude $find_exclude -not -path "*/$junk/*" -not -path "*/$junk"; end
-            set -l find_inc \(; set -l f 1
-            for s in $special_files; if test $f -eq 1; set find_inc $find_inc -name "$s"; set f 0; else; set find_inc $find_inc -o -name "$s"; end; end
-            for e in $allowed_exts; set find_inc $find_inc -o -name "*.$e"; end; set find_inc $find_inc \)
-            for item in $targets
-                if test -f "$item"; echo "$item" >> $raw
-                else if test -d "$item"; find "$item" $find_depth -type f $find_exclude $find_inc >> $raw; end
+
+        # 3. Add Explicit Files
+        if test (count $explicit_files) -gt 0
+            for f in $explicit_files; echo "$f" >> $raw; end
+        end
+
+        # 4. Search Engine (Fixed Logic)
+        if test (count $dirs_to_scan) -gt 0
+            if type -q fd || type -q fdfind
+                 set -l fd_bin fd; if type -q fdfind; set fd_bin fdfind; end
+                 
+                 # Prepare Regex Parts Separately (Prevents Space Injection)
+                 set -l ext_group (string join '|' $allowed_exts)
+                 set -l file_group (string join '|' $special_files)
+                 set -l final_regex ".*\.($ext_group)\$|($file_group)\$"
+
+                 set -l depth_arg "--max-depth" "$depth"
+                 if test "$depth" -eq -1; set depth_arg ""; end
+                 if test "$depth" -eq 0; set depth_arg "--max-depth" "1"; end
+                 
+                 # FIXED: Flags First, Regex Second, Paths Last
+                 command $fd_bin --type f $depth_arg --regex "$final_regex" $dirs_to_scan >> $raw
+            else
+                echo "$c_dim""mode: 🐢 Legacy 'find' (Install 'fd' for .gitignore support)$c_reset"
+                set -l find_depth
+                if test "$depth" -ne -1; set find_depth "-maxdepth" "$depth"; end
+                if test "$depth" -eq 0; set find_depth "-maxdepth" "1"; end
+                set -l find_exclude
+                for junk in $trash_patterns; set find_exclude $find_exclude -not -path "*/$junk/*" -not -path "*/$junk"; end
+                set -l find_inc \(; set -l f 1
+                for s in $special_files; if test $f -eq 1; set find_inc $find_inc -name "$s"; set f 0; else; set find_inc $find_inc -o -name "$s"; end; end
+                for e in $allowed_exts; set find_inc $find_inc -o -name "*.$e"; end; set find_inc $find_inc \)
+                
+                for d in $dirs_to_scan
+                    find "$d" $find_depth -type f $find_exclude $find_inc >> $raw
+                end
             end
         end
         
+        # 5. Deduplicate
         set -l clean (cat $raw | sed 's|^\./||' | sort | uniq); rm $raw
-        if test -z "$clean"; echo "$c_warn❌ No files found.$c_reset"; return 1; end
+        if test -z "$clean"; echo "$c_warn❌ No valid files found.$c_reset"; return 1; end
 
+        # 6. Selection
         if set -q _flag_all
             echo "$c_dim""mode: ⚡ Auto-Select ALL$c_reset"; set files $clean
         else
