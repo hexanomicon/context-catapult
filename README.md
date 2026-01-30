@@ -5,9 +5,6 @@
     <a href="https://github.com/hexanomicon/context-catapult">
       <img src="https://img.shields.io/badge/Fisher-Install-1a1a20?style=for-the-badge&labelColor=006064&logo=fish&logoColor=white" alt="Fisher">
     </a>
-    <a href="https://github.com/hexanomicon">
-      <img src="https://img.shields.io/badge/Origin-The_Hexanomicon-1a1a20?style=for-the-badge&labelColor=4a148c" alt="Hexanomicon">
-    </a>
     <a href="LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-1a1a20?style=for-the-badge&labelColor=2e7d32" alt="License">
     </a>
