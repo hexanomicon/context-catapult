@@ -74,7 +74,7 @@ EXAMPLES:
    ctx .                 # Interactive scan (Starts empty)
    ctx -d -1 src/        # Infinite scan of src/
    ctx -t -P 100         # Tree view, print up to 100 lines
-   ctx -l                # Generate LLM Handshake Protocol
+   ctx -l                # Generate LLM Kickstart Protocol
 "
 
     set -l llm_preamble "
@@ -103,7 +103,7 @@ YOUR DIRECTIVE:
     end
 
     # ==============================================================================
-    # 🤖 MODE 2: THE HANDSHAKE
+    # 🤖 MODE 2: ThE Kickstart
     # ==============================================================================
     if set -q _flag_llm
         if not type -q tree; echo "$c_err❌ 'tree' missing.$c_reset"; return 1; end

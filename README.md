@@ -15,20 +15,20 @@
 
 ## ⚡ The Problem
 
-You are working with an AI (Claude, ChatGPT, Local LLM). You need to share code.
+You are working with an LLM (Claude, ChatGPT, Local LLM). You need to share code.
 
 * **Copy-pasting** file-by-file is slow and breaks flow.
 * **`cat ./*`** dumps `node_modules` and binary files, crashing the context window.
-* The AI hallucinates files because it doesn't know your directory structure.
+* The LLM hallucinates files because it doesn't know your directory structure.
 
 ## 🔮 The Solution
 
-**CTX** bridges your terminal and your AI using tools you already trust.
+**CTX** bridges your terminal and your LLM using tools you already trust.
 
 * **🛡️ Safety First:** Auto-skips files larger than **1MB** or **2000 lines**.
 * **🧠 Context Aware:** Uses `fd` to respect `.gitignore` automatically.
 * **👁️ Smart Selection:** Uses `fzf` for interactive filtering.
-* **📋 System Protocol:** Generates a project map to "handshake" with the AI.
+* **📋 System Protocol:** Generates a project map to kickstart the conversation with the LLM.
 
 ---
 
@@ -66,7 +66,7 @@ Run `ctx -h`. If you see the manual, you are ready.
 
 ## 🚀 Workflow
 
-### 1. The Handshake (`ctx -l`)
+### 1. The Kickstart (`ctx -l`)
 
 *Start here.* This generates a "System Protocol" and a clean Map of your project. Paste this to the LLM **first** so it understands your architecture.
 
@@ -134,7 +134,7 @@ CTX pairs perfectly with **[zoxide (z)](https://github.com/ajeetdsouza/zoxide)**
 # Jump to project -> Extract Context
 z lychd; and ctx .
 
-# Jump to project -> Generate Handshake
+# Jump to project -> Kickstart the conversation
 z my-app; and ctx -l
 ```
 
