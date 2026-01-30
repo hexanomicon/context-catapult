@@ -11,14 +11,15 @@ function ctx --description "Context Catapult: The Ultimate LLM Workflow Tool"
     set -l allowed_exts txt md py js ts go rs c cpp h hpp sh fish json yaml toml sql java rb css html jinja dockerfile vue svelte jsx tsx
     set -l special_files README.md Dockerfile Containerfile Makefile Justfile Cargo.toml package.json go.mod requirements.txt
     
-    # 🗑️ TRASH LIST
+    # 🗑️ TRASH LIST (Ignored in Tree/Find)
     set -l trash_patterns '.git' '.svn' '.hg' '.DS_Store' \
                           'node_modules' 'bower_components' \
                           'venv' '.venv' 'env' '.env' \
                           '__pycache__' '.pytest_cache' '.mypy_cache' '.ruff_cache' \
                           'dist' 'build' 'target' 'bin' 'obj' 'vendor' \
                           '.idea' '.vscode' 'coverage' '.github' \
-                          'uv.lock' 'package-lock.json' 'yarn.lock'
+                          'uv.lock' 'package-lock.json' 'yarn.lock' \
+                          '*.png' '*.jpg' '*.jpeg' '*.gif' '*.webp' '*.ico' '*.svg' '*.zip' '*.tar' '*.gz' '*.pdf'
 
     # Defaults
     set -l def_bytes  1048576  # 1 MB
@@ -153,7 +154,7 @@ YOUR DIRECTIVE:
     end
 
     # ==============================================================================
-    # 🔎 MODE 4: DISCOVERY (Fixed Regex & Argument Order)
+    # 🔎 MODE 4: DISCOVERY (Smart Files/Dirs Split)
     # ==============================================================================
     set -l files
     if set -q _flag_retry
@@ -191,22 +192,27 @@ YOUR DIRECTIVE:
             for f in $explicit_files; echo "$f" >> $raw; end
         end
 
-        # 4. Search Engine (Fixed Logic)
+        # 4. Search Engine
         if test (count $dirs_to_scan) -gt 0
             if type -q fd || type -q fdfind
                  set -l fd_bin fd; if type -q fdfind; set fd_bin fdfind; end
                  
-                 # Prepare Regex Parts Separately (Prevents Space Injection)
+                 # Prepare Regex
                  set -l ext_group (string join '|' $allowed_exts)
                  set -l file_group (string join '|' $special_files)
                  set -l final_regex ".*\.($ext_group)\$|($file_group)\$"
 
-                 set -l depth_arg "--max-depth" "$depth"
-                 if test "$depth" -eq -1; set depth_arg ""; end
-                 if test "$depth" -eq 0; set depth_arg "--max-depth" "1"; end
+                 # FIX: Use List for depth args to avoid passing empty strings
+                 set -l depth_args
+                 if test "$depth" -eq 0
+                     set depth_args --max-depth 1
+                 else if test "$depth" -gt 0
+                     set depth_args --max-depth $depth
+                 end
+                 # If depth is -1 (Infinite), depth_args remains empty list (passing nothing)
                  
-                 # FIXED: Flags First, Regex Second, Paths Last
-                 command $fd_bin --type f $depth_arg --regex "$final_regex" $dirs_to_scan >> $raw
+                 # IMPORTANT: Pass dirs_to_scan as individual arguments
+                 command $fd_bin --type f $depth_args --regex "$final_regex" $dirs_to_scan >> $raw
             else
                 echo "$c_dim""mode: 🐢 Legacy 'find' (Install 'fd' for .gitignore support)$c_reset"
                 set -l find_depth
